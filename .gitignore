@@ -1,0 +1,7 @@
+*.swp
+*~
+*.pyc
+.tox/
+quay_tool.egg-info/
+.eggs
+AUTHORS

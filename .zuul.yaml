@@ -1,0 +1,10 @@
+- project:
+    check: &quaycheck
+      jobs:
+        - tox-py38:
+            nodeset: python-latest-pod
+        - tox-pep8:
+            nodeset: python-latest-pod
+        - tox-linters:
+            nodeset: python-latest-pod
+    gate: *quaycheck
