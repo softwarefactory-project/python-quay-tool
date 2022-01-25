@@ -26,17 +26,29 @@ Basic usage of Quay tool
 Set image to be public:
 
 ```sh
-python3 quay-tool.py --api-url https://quay.rdoproject.org/api/v1 --token <token> --organization myorganization --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --visibility public
 ```
 
 Specify image repository to be public:
 
 ```sh
-python3 quay-tool.py --api-url https://quay.rdoproject.org/api/v1 --token <token> --organization myorganization --repository test --repository test2 --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --repository test --repository test2 --visibility public
 ```
 
 Set all repository to be private, but skip some of them:
 
 ```sh
-python3 quay-tool.py --api-url https://quay.rdoproject.org/api/v1 --token <token> --organization myorganization --skip test3 --skip test4 --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --skip test3 --skip test4 --visibility public
+```
+
+List all robots in organization:
+
+```sh
+quay_tool --api-url https://quay.dev/api/v1 --organization test --token sometoken --insecure --list-robots
+```
+
+Create robot in organization:
+
+```sh
+quay_tool --api-url https://quay.dev/api/v1 --organization test --token sometoken --create-robot bender
 ```
