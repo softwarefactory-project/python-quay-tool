@@ -1,0 +1,16 @@
+---
+- name: Prepare sf-infra repository
+  block:
+    - name: Clone sf-infra repository
+      git:
+        repo: https://softwarefactory-project.io/r/software-factory/sf-infra
+        dest: ~/src/softwarefactory-project.io/software-factory/sf-infra/roles
+        update: no
+
+    - name: Clone python-quay-project repository
+      git:
+        repo: https://softwarefactory-project.io/r/software-factory/python-quay-tool
+        dest: ~/src/softwarefactory-project.io/software-factory/python-quay-tool
+        update: no
+
+  when: zuul is not defined

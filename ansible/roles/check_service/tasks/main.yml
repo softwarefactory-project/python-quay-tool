@@ -1,0 +1,7 @@
+---
+- include_role:
+    name: hostname
+  when: zuul is not defined
+
+
+

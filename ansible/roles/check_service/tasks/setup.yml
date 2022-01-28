@@ -1,0 +1,37 @@
+---
+- include_role:
+    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/hostname"
+    tasks_from: main.yml
+  when: zuul is defined
+
+- name: Install epel-release
+  become: true
+  package:
+    name: epel-release
+    state: present
+  ignore_errors: true
+
+- name: Install python3-bcrypt
+  become: true
+  package:
+    name:
+      - python3
+      - python3-bcrypt
+      - python3-cryptography
+    state: present
+
+- name: remove epel-release
+  become: true
+  package:
+    name: epel-release
+    state: absent
+- name: Setup quay
+  include_role:
+    name: quay
+    tasks_from: main.yml
+  when: zuul is not defined
+
+- include_role:
+    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/quay"
+    tasks_from: main.yml
+  when: zuul is defined

@@ -1,10 +1,19 @@
+- job:
+    name: quay-tool-tests
+    description: Test for validating Quay tool
+    run: ansible/playbooks/check-quay-tool.yml
+    required-projects:
+      - software-factory/sf-infra
+    roles:
+      - zuul: software-factory/sf-infra
+    nodeset:
+      nodes:
+        - name: quay.dev
+          label: cloud-centos-8-stream
 - project:
     check: &quaycheck
       jobs:
-        - tox-py38:
-            nodeset: python-latest-pod
-        - tox-pep8:
-            nodeset: python-latest-pod
+        - quay-tool-tests
         - tox-linters:
             nodeset: python-latest-pod
     gate: *quaycheck

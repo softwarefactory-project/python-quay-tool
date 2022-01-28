@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import argparse
-import json
 import requests
 import sys
 
@@ -177,7 +176,7 @@ def get_quay_info(api_url, insecure):
     url = "%s/discovery" % api_url
     r = requests.get(url, verify=insecure)
     r.raise_for_status()
-    print(json.dumps(r.json()))
+    print(r.json())
 
 
 ###############
@@ -196,7 +195,7 @@ def get_repository_images(api_url, headers, insecure, repository,
     for repo in repository:
         url = "%s/%s/image/" % (repo_url, repo)
         r = requests.get(url, headers=headers, verify=insecure)
-        print(json.dumps(r.json()))
+        print(r.json())
 
 
 def create_repository(api_url, headers, insecure, organization, repositories):
@@ -238,7 +237,7 @@ def get_organization_info(api_url, headers, insecure, organization):
     url = "%s/organization/%s" % (api_url, organization)
     r = requests.get(url, headers=headers, verify=insecure)
     if r.status_code == 200:
-        print(json.dumps(r.json()))
+        print(r.json())
         return True
 
 
@@ -432,11 +431,11 @@ def main():
     elif args.list_robots:
         robots = get_robots_in_organization(args.api_url, headers,
                                             args.insecure, args.organization)
-        print(json.dumps(robots))
+        print(robots)
     elif args.list_prototypes:
         prototypes = get_prototypes_in_org(args.api_url, headers,
                                            args.insecure, args.organization)
-        print(json.dumps(prototypes))
+        print(prototypes)
     elif args.create_prototype:
         prototypes = create_prototype_in_org(args.api_url, headers,
                                              args.insecure, args.organization,
@@ -444,11 +443,11 @@ def main():
     elif args.create_robot:
         robot = create_robot(args.api_url, headers, args.insecure,
                              args.organization, args.robot)
-        print(json.dumps(robot))
+        print(robot)
     elif args.regenerate_token:
         robot = regenerate_token(args.api_url, headers, args.insecure,
                                  args.organization, args.robot)
-        print(json.dumps(robot))
+        print(robot)
     elif args.create_team:
         create_team(args.api_url, headers, args.insecure, args.organization,
                     args.team)
@@ -458,7 +457,7 @@ def main():
     elif args.list_repositories:
         repos = list_repositories(args.api_url, headers, args.insecure,
                                   args.organization, args.visibility)
-        print(json.dumps(repos))
+        print(repos)
 
 
 if __name__ == "__main__":

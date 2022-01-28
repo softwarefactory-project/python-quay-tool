@@ -1,0 +1,80 @@
+---
+- name: Install python quay tool
+  become: true
+  shell: |
+    pip3 install -r requirements.txt
+    pip3 install .
+  args:
+    chdir: "{{ zuul.projects['softwarefactory-project.io/software-factory/python-quay-tool'].src_dir }}"
+  when: zuul is defined
+
+- name: Install python quay tool - zuul not defined
+  shell: |
+    pip3 install --user -r requirements.txt
+    pip3 install --user .
+  args:
+    chdir: ~/src/softwarefactory-project.io/software-factory/python-quay-tool
+  when: zuul is not defined
+
+- name: Get admin token
+  become: true
+  shell: |
+    grep -i admin_token /var/data/quay/config/admin_token | cut -f2 -d'='
+  register: admin_token
+
+- name: Set access token fact
+  set_fact:
+    common_command: "quaytool --api-url {{ api_url }} --organization {{ organization }} --token {{ admin_token.stdout }} --insecure"
+
+- name: Create organization
+  shell: "{{ common_command }} --create-organization"
+
+- name: Create robot user
+  shell: "{{ common_command }} --robot {{ robot_name }} --create-robot"
+  register: robot_response
+
+# NOTE: The 'from_json' function is just a simple python json.loads function call.
+# To avoid error: "the field 'args' has an invalid value", replace not proper
+# values that later can be parsed by the json.loads function.
+- name: Set robot token as fact
+  set_fact:
+    robot_token: "{{ robot_response.stdout | to_json | from_json }}"
+
+- name: Set default write permissions to the robot into the organization
+  shell: "{{ common_command }} --user {{ organization }}+{{ robot_name }} --create-prototype"
+
+- name: Create new team - creators
+  shell: "{{ common_command }} --team {{ team_name }} --create-team"
+
+- name: Add robot user into the team
+  shell: "{{ common_command }} --team {{ team_name }} --user {{ organization }}+{{ robot_name }} --add-member"
+
+- name: Login as robot into registry
+  shell: |
+    podman login "{{ fqdn }}" -u{{ organization }}+{{ robot_name }} -p{{ robot_token['token'] }} {{ podman_parameters }}
+
+- name: Pull images
+  command: podman pull "{{ item.name }}"
+  loop: "{{ images }}"
+
+- name: Change images tag
+  command: podman tag "{{ item.name }}" "{{ item.local_name }}"
+  loop: "{{ images }}"
+
+- name: Push images into organization
+  shell: |
+    podman push {{ item.local_name }} {{ podman_parameters }}
+    sleep 2
+  loop: "{{ images }}"
+
+- name: Set first repository as public
+  shell: "{{ common_command }} --repository {{ images[0]['repo_name'] }} --visibility public --set-visibility"
+
+- name: Get public repositories in the organization
+  shell: "{{ common_command }} --list-repositories --visibility public"
+  register: _public_repos
+
+- name: Fail when repo is not public
+  fail:
+    msg: "The repository {{ images[0]['local_name'] }} should be public"
+  when: "\"'is_public': True\" not in _public_repos.stdout"
