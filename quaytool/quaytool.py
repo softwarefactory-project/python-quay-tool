@@ -336,10 +336,26 @@ def create_team(api_url, headers, insecure, organization, team):
     r.raise_for_status()
 
 
+def is_member_in_team(members, user):
+    if 'members' not in members:
+        return
+
+    for member in members['members']:
+        if member['name'] == user:
+            return user
+
+
 def add_member(api_url, headers, insecure, organization, team, user):
     if not organization or not team or not user:
         print("Can not continue: --organization, --team and --user parameters "
               "are required!")
+        return
+
+    team_members = get_team_members(api_url, headers, insecure, organization,
+                                    team)
+
+    if is_member_in_team(team_members, user):
+        print("User already in the team")
         return
 
     url = "%s/organization/%s/team/%s/members/%s" % (api_url, organization,
@@ -374,11 +390,27 @@ def get_prototypes_in_org(api_url, headers, insecure, organization):
     return r.json()
 
 
+def is_prototype_in_org(prototypes, user):
+    if 'prototypes' not in prototypes:
+        return
+
+    for prototype in prototypes['prototypes']:
+        if prototype['delegate']['name'] == user:
+            return user
+
+
 def create_prototype_in_org(api_url, headers, insecure, organization, user):
     if not organization or not user:
         print("Can not continue: --organization and --user parameters are "
               "required!")
         return
+
+    prototypes = get_prototypes_in_org(api_url, headers, insecure,
+                                       organization)
+    if prototypes:
+        print("User already got an prototype")
+        return
+
     body = {
         "role": "write",
         "delegate": {
