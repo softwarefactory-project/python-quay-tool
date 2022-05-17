@@ -76,7 +76,9 @@ def get_args():
                         "and --robot parameter",
                         action="store_true")
     action.add_argument("--create-prototype", help="Set write policy as "
-                        "as default permission in the organization",
+                        "as default permission in the organization"
+                        "NOTE: need --organization and --user or --team "
+                        "parameter",
                         action="store_true")
     action.add_argument("--create-team", help="Create team inside the "
                         "organization with creator privileges. NOTE: need "
@@ -415,25 +417,28 @@ def get_prototypes_in_org(api_url, headers, insecure, organization):
     return r.json()
 
 
-def is_prototype_in_org(prototypes, user):
+def is_prototype_in_org(prototypes, user, team):
     if 'prototypes' not in prototypes:
         return
 
     for prototype in prototypes['prototypes']:
-        if prototype['delegate']['name'] == user:
-            return user
+        if prototype['delegate']['name'] == user or prototype['delegate'][
+                'name'] == team:
+            return user or team
 
 
-def create_prototype_in_org(api_url, headers, insecure, organization, user):
-    if not organization or not user:
-        print("Can not continue: --organization and --user parameters are "
-              "required!")
+def create_prototype_in_org(api_url, headers, insecure, organization, user,
+                            team):
+    if not organization or (not user and not team):
+        print("Can not continue: --organization and --user or --team "
+              "parameters are required!")
         return
 
     prototypes = get_prototypes_in_org(api_url, headers, insecure,
                                        organization)
-    if prototypes:
-        print("User already got an prototype")
+
+    if is_prototype_in_org(prototypes, user, team):
+        print("User or team already got an prototype")
         return
 
     body = {
@@ -443,6 +448,10 @@ def create_prototype_in_org(api_url, headers, insecure, organization, user):
             "kind": "user"
         }
     }
+
+    if team:
+        body['delegate']['name'] = team
+        body['delegate']['kind'] = "team"
 
     url = "%s/organization/%s/prototypes" % (api_url, organization)
     r = requests.post(url, json=body, headers=headers, verify=insecure)
@@ -502,7 +511,7 @@ def main():
     elif args.create_prototype:
         prototypes = create_prototype_in_org(args.api_url, headers,
                                              args.insecure, args.organization,
-                                             args.user)
+                                             args.user, args.team)
     elif args.create_robot:
         robot = create_robot(args.api_url, headers, args.insecure,
                              args.organization, args.robot)

@@ -59,6 +59,21 @@ Set write permissions for a user for repositories inside the organziation:
 quaytool  --api-url https://quay.dev/api/v1 --organization test --token sometoken --user test+cirobot --set-permissions
 ```
 
+Set the prototype (default permissions) in the organization.
+By default it creates prototype with write permissions.
+
+For a user:
+
+```sh
+quaytool  --api-url https://quay.dev/api/v1 --organization test --token sometoken --create-prototype --user test+cirobot
+```
+
+For a team:
+
+```sh
+quaytool  --api-url https://quay.dev/api/v1 --organization test --token sometoken --create-prototype --team creators
+```
+
 ## Basic workflow how to setup new organziation
 
 - Get the admin token
@@ -92,17 +107,17 @@ quaytool --api-url <api url> --organization <organization name> --token <admin t
 quaytool --api-url <api url> --organization <organization name> --token <admin token> --robot <robot_name> --create-robot
 ```
 
-- Create prototype for the organization (set default permissions for the new users like robot).
-  By default it will create write permissions.
-
-```sh
-quaytool --api-url <api url> --organization <organization name> --token <admin token> --user <robot user> --create-prototype
-```
-
 - Create new team that will be able to create new repositories inside the organization
 
 ```sh
 quaytool --api-url <api url> --organization <organization name> --token <admin token> --team <team name> --create-team
+```
+
+- Create prototype for the creators team inside the organization (set default permissions for the new users like robot that are in creators team).
+  By default it will create write permissions.
+
+```sh
+quaytool --api-url <api url> --organization <organization name> --token <admin token> --team <team name> --create-prototype
 ```
 
 - Add robot user to the team

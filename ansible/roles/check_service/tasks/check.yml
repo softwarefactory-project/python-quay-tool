@@ -40,11 +40,11 @@
   set_fact:
     robot_token: "{{ robot_response.stdout | to_json | from_json }}"
 
-- name: Set default write permissions to the robot into the organization
-  shell: "{{ common_command }} --user {{ organization }}+{{ robot_name }} --create-prototype"
-
 - name: Create new team - creators
   shell: "{{ common_command }} --team {{ team_name }} --create-team"
+
+- name: Set default write permissions to the robot into the organization
+  shell: "{{ common_command }} --team {{ team_name }} --create-prototype"
 
 - name: Add robot user into the team
   shell: "{{ common_command }} --team {{ team_name }} --user {{ organization }}+{{ robot_name }} --add-member"
