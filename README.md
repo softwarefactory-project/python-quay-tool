@@ -53,6 +53,12 @@ Create robot in organization:
 quay_tool --api-url https://quay.dev/api/v1 --organization test --token sometoken --create-robot bender
 ```
 
+Set write permissions for a user for repositories inside the organziation:
+
+```sh
+quaytool  --api-url https://quay.dev/api/v1 --organization test --token sometoken --user test+cirobot --set-permissions
+```
+
 ## Basic workflow how to setup new organziation
 
 - Get the admin token

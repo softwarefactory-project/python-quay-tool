@@ -42,6 +42,11 @@ def get_args():
     action.add_argument("--set-visibility", help="Set visibility for the "
                         "repository",
                         action="store_true")
+    action.add_argument("--set-permissions", help="Give user write permissions"
+                        " into for repositories in the organization."
+                        "NOTE: need --organization and --user parameters."
+                        "Optionally works with --skip-repo.",
+                        action="store_true")
     # list operations
     action.add_argument("--list-images", help="Show images in repository."
                         "NOTE: requires --repository parameter.",
@@ -170,6 +175,24 @@ def make_visibility(api_url, headers, insecure, repositories, visibility):
         url = "%s/repository/%s/changevisibility" % (api_url, repo_name)
         r = requests.post(url, json=body, headers=headers, verify=insecure)
         r.raise_for_status()
+
+
+def set_user_repo_permissions(api_url, headers, insecure, repos, organization,
+                              user):
+    if not organization or not user:
+        print("Can not continue. You need to provide --organization "
+              "and --user parameters")
+
+    body = {"role": "write"}
+
+    for repo in repos:
+        print("Adding %s write access to %s inside %s" % (user, repo['name'],
+                                                          organization))
+        url = "%s/repository/%s/%s/permissions/user/%s" % (
+            api_url, organization, repo['name'], user)
+        r = requests.put(url, json=body, headers=headers, verify=insecure)
+        if r.status_code != 201:
+            r.raise_for_status()
 
 
 def get_quay_info(api_url, insecure):
@@ -454,6 +477,12 @@ def main():
                                          args.skip_repo)
         make_visibility(args.api_url, headers, args.insecure, repos,
                         args.visibility)
+    elif args.set_permissions:
+        repos = get_organization_details(args.api_url, headers, args.insecure,
+                                         args.organization, args.repository,
+                                         args.skip_repo)
+        set_user_repo_permissions(args.api_url, headers, args.insecure, repos,
+                                  args.organization, args.user)
     elif args.create_repository:
         create_repository(args.api_url, headers, args.insecure,
                           args.organization, args.repository)
