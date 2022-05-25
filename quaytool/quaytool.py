@@ -16,6 +16,7 @@
 
 import argparse
 import requests
+import os
 import sys
 
 
@@ -27,7 +28,8 @@ def get_args():
                          required=True)
     # parameters that are needed to perfom some actions
     parser.add_argument("--token", help="Application token to operate on "
-                        "registry")
+                        "registry",
+                        default=os.getenv('ADMIN_TOKEN'))
     parser.add_argument("--user", help="Operate on specified user")
     parser.add_argument("--info", help="Show Quay information",
                         action="store_true")
