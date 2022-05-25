@@ -59,6 +59,12 @@ Set write permissions for a user for repositories inside the organziation:
 quaytool  --api-url https://quay.dev/api/v1 --organization test --token sometoken --user test+cirobot --set-permissions
 ```
 
+Restore deleted tag:
+
+```sh
+quaytool --api-url https://quay.dev/api/v1 --organization test --token sometoken--tag 14ee273e8565960cf6d5b6e26ae92ade --restore-tag
+```
+
 Set the prototype (default permissions) in the organization.
 By default it creates prototype with write permissions.
 

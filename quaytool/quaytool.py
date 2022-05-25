@@ -40,6 +40,7 @@ def get_args():
                         action="append",
                         default=[])
     parser.add_argument("--robot", help="Robot name")
+    parser.add_argument("--tag", help="Specify a tag name")
     action = parser.add_argument_group("Action parameters")
     action.add_argument("--set-visibility", help="Set visibility for the "
                         "repository",
@@ -93,6 +94,10 @@ def get_args():
     action.add_argument("--add-member", help="Add user into the team. NOTE: "
                         "it requires parameters: --organization, --team and "
                         "--user",
+                        action="store_true")
+    action.add_argument("--restore-tag", help="Restore tag from deep darkness"
+                        "NOTE: it requires parameters: --organization and "
+                        "--tag. Can be used with --skip-repo",
                         action="store_true")
     optional = parser.add_argument_group("Optional parameters")
     optional.add_argument("--skip-repo", help="Skip repositories that change "
@@ -255,6 +260,47 @@ def list_repositories(api_url, headers, insecure, organization, visibility):
     r = requests.get(url, headers=headers, verify=insecure)
     r.raise_for_status()
     return r.json()
+
+
+def restore_tag(api_url, headers, insecure, organization, tag, repositories):
+    if not tag or not organization:
+        print("Can not continue: --organization and --tag parameters "
+              "are required!")
+        return
+
+    for repository in repositories:
+        # get all available tags for that repository
+        url = "%s/repository/%s/%s/tag" % (api_url, organization,
+                                           repository['name'])
+        r = requests.get(url, headers=headers, verify=insecure)
+        r.raise_for_status()
+
+        available_tags = r.json()
+
+        missing_tags = []
+        if 'tags' not in available_tags:
+            print("Can't find any tag for repository %s" % repository['name'])
+            continue
+
+        for t in available_tags['tags']:
+            if t['name'] == tag:
+                print("Found a tag %s in repository %s" % (
+                    tag, repository['name']))
+
+                digest = t['manifest_digest']
+                body = {
+                    "manifest_digest": digest
+                }
+
+                url = "%s/repository/%s/%s/tag/%s/restore" % (
+                    api_url, organization, repository['name'], tag)
+                r = requests.post(url, json=body, headers=headers,
+                                  verify=insecure)
+                r.raise_for_status()
+            else:
+                missing_tags.append(repository['name'])
+    if missing_tags:
+        print("Repos that image was not restored: %s" % set(missing_tags))
 
 
 ################
@@ -530,6 +576,12 @@ def main():
         repos = list_repositories(args.api_url, headers, args.insecure,
                                   args.organization, args.visibility)
         print(repos)
+    elif args.restore_tag:
+        repos = get_organization_details(args.api_url, headers, args.insecure,
+                                         args.organization, args.repository,
+                                         args.skip_repo)
+        restore_tag(args.api_url, headers, args.insecure, args.organization,
+                    args.tag, repos)
 
 
 if __name__ == "__main__":
