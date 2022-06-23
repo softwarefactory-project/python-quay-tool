@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import datetime
 import requests
 import os
 import sys
@@ -99,6 +100,12 @@ def get_args():
                         "NOTE: it requires parameters: --organization and "
                         "--tag. Can be used with --skip-repo",
                         action="store_true")
+    action.add_argument("--expire", help="Set in how many days should"
+                        "the tag be expired. If 0 set, it will remove "
+                        "expiration label. NOTE: it requires parameters: "
+                        "--organization and --tag. Can be used with "
+                        "--skip-repo",
+                        type=int)
     optional = parser.add_argument_group("Optional parameters")
     optional.add_argument("--skip-repo", help="Skip repositories that change "
                           "should not be applied. Can be used multiple times",
@@ -262,12 +269,55 @@ def list_repositories(api_url, headers, insecure, organization, visibility):
     return r.json()
 
 
+def expire_tag(api_url, headers, insecure, organization, tag, repositories,
+               days):
+    return _tag_helper(api_url, headers, insecure, organization, tag,
+                       repositories, days, expire_tag=True)
+
+
 def restore_tag(api_url, headers, insecure, organization, tag, repositories):
+    return _tag_helper(api_url, headers, insecure, organization, tag,
+                       repositories, restore_tag=True)
+
+
+def _make_expire(api_url, headers, insecure, organization, tag, repository,
+                 days):
+    url = "%s/repository/%s/%s/tag/%s" % (
+        api_url, organization, repository['name'], tag)
+
+    if days > 0:
+        now = datetime.datetime.utcnow()
+        tomorrow = now + datetime.timedelta(days=days)
+        body = {"expiration": int(tomorrow.timestamp())}
+    else:
+        body = {"expiration": None}
+
+    r = requests.put(url, json=body, headers=headers,
+                     verify=insecure)
+    r.raise_for_status()
+
+
+def _make_restore(api_url, headers, insecure, organization, tag, repository,
+                  available_tag):
+    digest = available_tag['manifest_digest']
+    body = {"manifest_digest": digest}
+    url = "%s/repository/%s/%s/tag/%s/restore" % (
+        api_url, organization, repository['name'], tag)
+
+    r = requests.post(url, json=body, headers=headers,
+                      verify=insecure)
+    r.raise_for_status()
+
+
+def _tag_helper(api_url, headers, insecure, organization, tag, repositories,
+                days=None, expire_tag=False, restore_tag=False):
+
     if not tag or not organization:
         print("Can not continue: --organization and --tag parameters "
               "are required!")
         return
 
+    missing_tags = []
     for repository in repositories:
         # get all available tags for that repository
         url = "%s/repository/%s/%s/tag" % (api_url, organization,
@@ -277,30 +327,26 @@ def restore_tag(api_url, headers, insecure, organization, tag, repositories):
 
         available_tags = r.json()
 
-        missing_tags = []
         if 'tags' not in available_tags:
             print("Can't find any tag for repository %s" % repository['name'])
             continue
 
-        for t in available_tags['tags']:
-            if t['name'] == tag:
+        for available_tag in available_tags['tags']:
+            if available_tag['name'] == tag:
                 print("Found a tag %s in repository %s" % (
                     tag, repository['name']))
 
-                digest = t['manifest_digest']
-                body = {
-                    "manifest_digest": digest
-                }
-
-                url = "%s/repository/%s/%s/tag/%s/restore" % (
-                    api_url, organization, repository['name'], tag)
-                r = requests.post(url, json=body, headers=headers,
-                                  verify=insecure)
-                r.raise_for_status()
+                if expire_tag >= 0:
+                    _make_expire(api_url, headers, insecure, organization, tag,
+                                 repository, days)
+                elif restore_tag:
+                    _make_restore(api_url, headers, insecure, organization,
+                                  tag, repository, available_tag)
             else:
                 missing_tags.append(repository['name'])
+
     if missing_tags:
-        print("Repos that image was not restored: %s" % set(missing_tags))
+        print("Repos that image was skipped: %s" % set(missing_tags))
 
 
 ################
@@ -582,6 +628,12 @@ def main():
                                          args.skip_repo)
         restore_tag(args.api_url, headers, args.insecure, args.organization,
                     args.tag, repos)
+    elif args.expire:
+        repos = get_organization_details(args.api_url, headers, args.insecure,
+                                         args.organization, args.repository,
+                                         args.skip_repo)
+        expire_tag(args.api_url, headers, args.insecure, args.organization,
+                   args.tag, repos, args.expire)
 
 
 if __name__ == "__main__":
