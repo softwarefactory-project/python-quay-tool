@@ -33,14 +33,28 @@
         repo_name: centos
     podman_parameters: "--tls-verify=false "
   tasks:
-    - include_role:
-        name: hostname
-      when: zuul is not defined
+    - name: Change hostname
+      become: true
+      hostname:
+        name: "{{ inventory_hostname }}"
 
-    - include_role:
-        name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/hostname"
-        tasks_from: main.yml
-      when: zuul is defined
+    # NOTE: if ansible_host is not set in hosts.yaml file, variable will
+    # contain fqdn, which later will generate bad entry in /etc/hosts.
+    - name: Ensure that correct hostname is set in hosts file base on ansible_host var
+      become: true
+      lineinfile:
+        dest: '/etc/hosts'
+        regexp: "^{{ inventory_hostname }}.+$"
+        line: "{{ ansible_host }} {{ inventory_hostname_short }} {{ inventory_hostname }}"
+      when: ansible_host != inventory_hostname
+
+    - name: Ensure that correct hostname is set base on interface ip address
+      become: true
+      lineinfile:
+        dest: '/etc/hosts'
+        regexp: "^{{ inventory_hostname }}.+$"
+        line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname_short }} {{ inventory_hostname }}"
+      when: ansible_host == inventory_hostname
 
     - name: Setup Quay service
       include_role:
