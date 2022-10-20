@@ -1,6 +1,6 @@
 ---
 - include_role:
-    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/hostname"
+    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/service/hostname"
     tasks_from: main.yml
   when: zuul is defined
 
@@ -32,6 +32,6 @@
   when: zuul is not defined
 
 - include_role:
-    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/quay"
+    name: "{{ zuul.projects['softwarefactory-project.io/software-factory/sf-infra'].src_dir }}/roles/rdo/quay"
     tasks_from: main.yml
   when: zuul is defined
