@@ -16,6 +16,7 @@
 
 import argparse
 import datetime
+import logging
 import requests
 import os
 import sys
@@ -42,6 +43,8 @@ def get_args():
                         default=[])
     parser.add_argument("--robot", help="Robot name")
     parser.add_argument("--tag", help="Specify a tag name")
+    parser.add_argument("--debug", help="Be more verbose",
+                        action="store_true")
     action = parser.add_argument_group("Action parameters")
     action.add_argument("--set-visibility", help="Set visibility for the "
                         "repository",
@@ -550,8 +553,18 @@ def create_prototype_in_org(api_url, headers, insecure, organization, user,
     r.raise_for_status()
 
 
+def setup_logging(debug):
+    if debug:
+        logging.basicConfig(format="%(asctime)s %(message)s",
+                            level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logging.debug("Starting Quaytool script...")
+
+
 def main():
     args = get_args()
+    setup_logging(args.debug)
 
     if (not args.token and args.visibility or not args.token
             and args.list_images):
