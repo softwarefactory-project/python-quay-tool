@@ -164,7 +164,12 @@ def get_organization_details(api_url, headers, insecure, organization,
             namespace_info = get_repo_info(api_url, headers, insecure,
                                            organization, next_page_token)
             if 'repositories' in namespace_info:
-                repositories += namespace_info.get('repositories')
+                ns_repos = namespace_info.get('repositories')
+                # NOTE: Workaround for never ending loop with "next_page"
+                # token, that contains same repositories as earlier.
+                if all(repo in repositories for repo in ns_repos):
+                    break
+                repositories += ns_repos
 
             if not get_next_page_token(namespace_info):
                 break
