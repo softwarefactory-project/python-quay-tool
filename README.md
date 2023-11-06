@@ -38,7 +38,7 @@ quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorga
 Set all repository to be private, but skip some of them:
 
 ```sh
-quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --skip test3 --skip test4 --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --skip-repo test3 --skip-repo test4 --visibility private
 ```
 
 List all robots in organization:
