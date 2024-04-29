@@ -344,7 +344,7 @@ def _tag_helper(api_url, headers, insecure, organization, tag, repositories,
                 print("Found a tag %s in repository %s" % (
                     tag, repository['name']))
 
-                if expire_tag >= 0:
+                if expire_tag and days is not None and days >= 0:
                     _make_expire(api_url, headers, insecure, organization, tag,
                                  repository, days)
                 elif restore_tag:
