@@ -297,8 +297,13 @@ def _make_expire(api_url, headers, insecure, organization, tag, repository,
         now = datetime.datetime.utcnow()
         tomorrow = now + datetime.timedelta(days=days)
         body = {"expiration": int(tomorrow.timestamp())}
+        print("Setting experiation date to: %s, for project: %s in "
+              "organization: %s " % (body['expiration'], repository['name'],
+                                     organization))
     else:
         body = {"expiration": None}
+        print("Canceling experiation date for project: %s in "
+              "organization: %s " % (repository['name'], organization))
 
     r = requests.put(url, json=body, headers=headers,
                      verify=insecure)
@@ -312,6 +317,8 @@ def _make_restore(api_url, headers, insecure, organization, tag, repository,
     url = "%s/repository/%s/%s/tag/%s/restore" % (
         api_url, organization, repository['name'], tag)
 
+    print("Restoring tag: %s for project: %s in organization: %s " % (
+        tag, repository['name'], organization))
     r = requests.post(url, json=body, headers=headers,
                       verify=insecure)
     r.raise_for_status()
