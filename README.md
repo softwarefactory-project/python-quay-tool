@@ -26,19 +26,19 @@ Basic usage of Quay tool
 Set image to be public:
 
 ```sh
-quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --set-visibility --visibility public
 ```
 
 Specify image repository to be public:
 
 ```sh
-quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --repository test --repository test2 --visibility public
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --repository test --repository test2 --set-visibility --visibility public
 ```
 
 Set all repository to be private, but skip some of them:
 
 ```sh
-quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --skip-repo test3 --skip-repo test4 --visibility private
+quaytool --api-url https://quay.dev/api/v1 --token <token> --organization myorganization --skip-repo test3 --skip-repo test4 --set-visibility --visibility private
 ```
 
 List all robots in organization:
