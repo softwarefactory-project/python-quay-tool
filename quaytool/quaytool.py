@@ -653,7 +653,7 @@ def main():
                                          args.skip_repo)
         restore_tag(args.api_url, headers, args.insecure, args.organization,
                     args.tag, repos)
-    elif args.expire:
+    elif args.expire or args.expire == 0:
         repos = get_organization_details(args.api_url, headers, args.insecure,
                                          args.organization, args.repository,
                                          args.skip_repo)
